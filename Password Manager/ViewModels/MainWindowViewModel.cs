@@ -17,7 +17,7 @@ public class MainWindowViewModel : ViewModelBase
 
     private async Task LoadEntries()
     {
-        var entries = await FileService.LoadEntriesAsync("/Users/bohdankharchenko/RiderProjects/Password Manager/Password Manager/Entries.json");
+        var entries = await FileService.LoadEntriesAsync("C:\\Users\\bodi4\\RiderProjects\\Password_Manager\\Password Manager\\Entries.json");
         if (entries is not null)
         {
             foreach (var entry in entries)

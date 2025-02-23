@@ -21,4 +21,37 @@ public static class FileService
             return null;
         }
     }
+
+    public static async Task<bool> SaveEntryAsync(PasswordEntryModel? entry , string? path)
+    {
+        if (string.IsNullOrEmpty(path) || entry == null)
+        {
+            return false;
+        }
+
+        List<PasswordEntryModel> entries = new();
+
+        try
+        {
+            if (File.Exists(path))
+            {
+                await using var fs = File.OpenRead(path);
+                var existing_entries = await JsonSerializer.DeserializeAsync<List<PasswordEntryModel>>(fs);
+                if (existing_entries != null)
+                    entries = existing_entries;
+            }
+
+            entries.Add(entry);
+
+            await using var writefs = File.Create(path);
+            await JsonSerializer.SerializeAsync(writefs, entries);
+            return true;
+
+
+        }
+        catch (Exception e) when (e is FileNotFoundException || e is DirectoryNotFoundException)
+        {
+            return false;
+        }
+    }
 }
