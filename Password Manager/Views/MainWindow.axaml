@@ -1,0 +1,48 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Password_Manager.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" 
+        Width="500" Height="1000" Padding="1"
+        x:Class="Password_Manager.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="Password Manager">
+
+    <Design.DataContext>
+        <!-- This only sets the DataContext for the previewer in an IDE,
+             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+    
+    <Grid>
+        <!-- Top Bar -->
+        <DockPanel Background="#111" Height="50" Margin="0,0,0,5">
+            <TextBlock Text="All" Foreground="White" FontSize="16" VerticalAlignment="Center" Margin="10,0,0,0" DockPanel.Dock="Left" />
+            <TextBlock Text="{Binding PasswordEntries.Count}" Foreground="Gray" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" DockPanel.Dock="Left" />
+            <Button Content="+" Width="30" Height="30" Background="Transparent" Foreground="White" BorderThickness="0" DockPanel.Dock="Right" />
+        </DockPanel>
+    
+        <!-- Password List -->
+        <ListBox ItemsSource="{Binding PasswordEntries}" Background="#222" BorderThickness="0">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Border BorderThickness="0" Padding="10">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        
+                            <StackPanel>
+                                <TextBlock Text="{Binding ServiceName}" Foreground="White" FontSize="14" />
+                                <TextBlock Text="{Binding Username}" Foreground="Gray" FontSize="12" />
+                            </StackPanel>
+                        
+                            <!-- Warning Icon (if applicable) -->
+                        </StackPanel>
+                    </Border>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </Grid>
+
+
+</Window>
