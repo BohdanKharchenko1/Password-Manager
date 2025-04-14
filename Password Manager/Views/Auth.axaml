@@ -1,0 +1,27 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="300"
+        x:Class="Password_Manager.Views.Auth"
+        Title="Login / Register">
+
+    <StackPanel Margin="20" Spacing="10" VerticalAlignment="Center" HorizontalAlignment="Center">
+
+        <TextBlock Text="Welcome to Password Manager" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center" />
+
+        <TextBlock Text="Username" />
+        <TextBox Name="UsernameBox" Width="250"/>
+
+        <TextBlock Text="Master Password" />
+        <TextBox Name="PasswordBox" Width="250" PasswordChar="●"/>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10" Margin="0,10,0,0">
+            <Button Content="Login" Name="LoginButton" Width="100"/>
+            <Button Content="Register" Name="RegisterButton" Width="100"/>
+        </StackPanel>
+
+        <TextBlock Name="ErrorTextBlock" Foreground="Red" FontSize="12" TextWrapping="Wrap" TextAlignment="Center"/>
+        
+    </StackPanel>
+</Window>

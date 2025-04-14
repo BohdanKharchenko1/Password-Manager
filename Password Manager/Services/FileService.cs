@@ -1,57 +1,102 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Password_Manager.Models;
 
-namespace Password_Manager.Services;
-
-public static class FileService
+namespace Password_Manager.Services
 {
-    public static async Task<IEnumerable<PasswordEntryModel>?> LoadEntriesAsync(string path)
+    public static class FileService
     {
-        try
+        /// <summary>
+        /// Loads and decrypts the password entries stored in the specified file.
+        /// </summary>
+        /// <param name="path">The file path to the encrypted JSON file.</param>
+        /// <param name="masterPassword">The master password used to decrypt the file.</param>
+        /// <returns>An IEnumerable of PasswordEntryModel or null if an error occurs.</returns>
+        public static async Task<IEnumerable<PasswordEntryModel>?> LoadEncryptedEntriesAsync(string path,
+            string masterPassword)
         {
-            await using var fs = File.OpenRead(path);
-            return await JsonSerializer.DeserializeAsync<IEnumerable<PasswordEntryModel>>(fs);
-        }
-        catch(Exception e) when (e is FileNotFoundException || e is DirectoryNotFoundException)
-        {
-            return null;
-        }
-    }
-
-    public static async Task<bool> SaveEntryAsync(PasswordEntryModel? entry , string? path)
-    {
-        if (string.IsNullOrEmpty(path) || entry == null)
-        {
-            return false;
-        }
-
-        List<PasswordEntryModel> entries = new();
-
-        try
-        {
-            if (File.Exists(path))
+            if (!File.Exists(path))
             {
-                await using var fs = File.OpenRead(path);
-                var existing_entries = await JsonSerializer.DeserializeAsync<List<PasswordEntryModel>>(fs);
-                if (existing_entries != null)
-                    entries = existing_entries;
+                // If the file doesn't exist, return an empty list.
+                return new List<PasswordEntryModel>();
             }
 
-            entries.Add(entry);
+            try
+            {
+                // Read the entire encrypted data from disk.
+                string encryptedData = await File.ReadAllTextAsync(path);
 
-            await using var writefs = File.Create(path);
-            await JsonSerializer.SerializeAsync(writefs, entries);
-            return true;
+                // Decrypt the data using the provided master password.
+                string decryptedJson = EncryptionService.Decrypt(encryptedData, masterPassword);
 
-
+                // Deserialize the decrypted JSON into a collection of entries.
+                return JsonSerializer.Deserialize<IEnumerable<PasswordEntryModel>>(decryptedJson);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error loading entries: " + e);
+                return null;
+            }
         }
-        catch (Exception e) when (e is FileNotFoundException || e is DirectoryNotFoundException)
+
+        /// <summary>
+        /// Saves a new password entry to the user's encrypted JSON file.
+        /// If the file exists, it decrypts and deserializes the current data,
+        /// adds the new entry, then re-serializes and encrypts it.
+        /// </summary>
+        /// <param name="entry">The new password entry to add.</param>
+        /// <param name="path">The file path to the encrypted JSON file.</param>
+        /// <param name="masterPassword">The master password used to encrypt the file.</param>
+        /// <returns>True if the operation succeeds; otherwise, false.</returns>
+        public static async Task<bool> SaveEncryptedEntryAsync(PasswordEntryModel entry, string path,
+            string masterPassword)
         {
-            return false;
+            if (string.IsNullOrEmpty(path))
+                return false;
+
+            List<PasswordEntryModel> entries = new();
+
+            try
+            {
+                if (File.Exists(path))
+                {
+                    // Read existing encrypted data
+                    string encryptedData = await File.ReadAllTextAsync(path);
+                    string decryptedJson = EncryptionService.Decrypt(encryptedData, masterPassword);
+                    var existingEntries = JsonSerializer.Deserialize<List<PasswordEntryModel>>(decryptedJson);
+                    if (existingEntries != null)
+                        entries = existingEntries;
+                }
+
+                // Check if the entry already exists (by Id)
+                var existing = entries.FirstOrDefault(e => e.Id == entry.Id);
+                if (existing != null)
+                {
+                    // Replace the existing entry
+                    int index = entries.IndexOf(existing);
+                    entries[index] = entry;
+                }
+                else
+                {
+                    // It's a new entry
+                    entries.Add(entry);
+                }
+
+                // Serialize updated list
+                string jsonContent = JsonSerializer.Serialize(entries);
+                string encryptedContent = EncryptionService.Encrypt(jsonContent, masterPassword);
+                await File.WriteAllTextAsync(path, encryptedContent);
+                return true;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error saving entry: " + e);
+                return false;
+            }
         }
     }
 }
