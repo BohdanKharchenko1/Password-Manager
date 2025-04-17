@@ -72,7 +72,6 @@ namespace Password_Manager.Services
                         entries = existingEntries;
                 }
 
-                // Check if the entry already exists (by Id)
                 var existing = entries.FirstOrDefault(e => e.Id == entry.Id);
                 if (existing != null)
                 {
@@ -98,5 +97,46 @@ namespace Password_Manager.Services
                 return false;
             }
         }
+        public static async Task<bool> DeleteEncryptedEntryAsync(Guid entryId, string path, string masterPassword)
+        {
+            if (string.IsNullOrEmpty(path))
+                return false;
+
+            List<PasswordEntryModel> entries = new();
+
+            try
+            {
+                if (File.Exists(path))
+                {
+                    // Read and decrypt existing data.
+                    string encryptedData = await File.ReadAllTextAsync(path);
+                    string decryptedJson = EncryptionService.Decrypt(encryptedData, masterPassword);
+                    var existingEntries = JsonSerializer.Deserialize<List<PasswordEntryModel>>(decryptedJson);
+                    if (existingEntries != null)
+                        entries = existingEntries;
+                }
+
+                var entryToRemove = entries.FirstOrDefault(e => e.Id == entryId);
+                if (entryToRemove == null)
+                {
+                    Console.WriteLine("Entry to delete was not found.");
+                    return false;
+                }
+
+                entries.Remove(entryToRemove);
+
+                string jsonContent = JsonSerializer.Serialize(entries);
+                string encryptedContent = EncryptionService.Encrypt(jsonContent, masterPassword);
+                await File.WriteAllTextAsync(path, encryptedContent);
+
+                return true;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error deleting entry: " + e);
+                return false;
+            }
+        }
+    
     }
 }

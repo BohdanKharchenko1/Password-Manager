@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
@@ -13,20 +14,45 @@ namespace Password_Manager.ViewModels
         public UserModel User { get; }
 
         public ObservableCollection<PasswordEntryModel> PasswordEntries { get; } = new();
+        
+        private PasswordEntryModel? _selectedEntry;
+        public PasswordEntryModel? SelectedEntry
+        {
+            get => _selectedEntry;
+            set => SetProperty(ref _selectedEntry, value);
+        }
 
         public ICommand AddEntryCommand { get; }
+        public ICommand DeleteEntryCommand { get; }
 
         public MainWindowViewModel(UserModel user)
         {
             User = user;
             _ = LoadEntriesAsync();
             AddEntryCommand = new RelayCommand(AddEntry);
+            DeleteEntryCommand = new RelayCommand(DeleteSelectedEntry, () => true);
+
+        }
+        private async void DeleteSelectedEntry()
+        {
+            if (SelectedEntry == null)
+                return;
+
+            // Call the delete method with the ID of the selected entry.
+            bool success = await FileService.DeleteEncryptedEntryAsync(SelectedEntry.Id, User.EntriesFilePath, User.MasterPassword);
+            if (success)
+            {
+                PasswordEntries.Remove(SelectedEntry);
+            }
+            else
+            {
+                Console.WriteLine("Failed to delete the selected entry.");
+            }
         }
 
 
         private async Task LoadEntriesAsync()
         {
-            // Load the encrypted entries via FileService using the user's file path and master password.
             var entries = await FileService.LoadEncryptedEntriesAsync(User.EntriesFilePath, User.MasterPassword);
             if (entries != null)
             {
@@ -39,8 +65,7 @@ namespace Password_Manager.ViewModels
 
         private void AddEntry()
         {
-            // For demonstration purposes, we create a dummy entry.
-            // In a real app, you'd show a new window or dialog to let the user input details.
+            
             var newEntry = new PasswordEntryModel
             {
                 ServiceName = "New Service",

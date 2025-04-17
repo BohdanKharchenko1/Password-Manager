@@ -11,17 +11,21 @@
         <vm:MainWindowViewModel/>
     </Design.DataContext>
     <Grid RowDefinitions="Auto,*">
-        <!-- Top bar with Add button -->
-        <StackPanel Orientation="Horizontal" Margin="10" Grid.Row="0">
+        <!-- Top bar with Add and Delete buttons -->
+        <StackPanel Orientation="Horizontal" Margin="10" Grid.Row="0" Spacing="30">
             <Button Content="+" Command="{Binding AddEntryCommand}" Width="30" Height="30" />
             <TextBlock Text="Add new entry" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="White"/>
+            <Button Content="-" VerticalContentAlignment ="Center" HorizontalContentAlignment= "Center" Command="{Binding DeleteEntryCommand}" Width="30" Height="30" Margin="10,0,0,0"/>
+            <TextBlock Text="Delete entry" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="White"/>
+            <Button x:Name="LogoutButton" Content="Logout" Width="70" Height="30" Margin="10,0,0,0"/>
         </StackPanel>
-    
+        
         <!-- Password List -->
-        <ListBox ItemsSource="{Binding PasswordEntries}" Background="#222" Grid.Row="1">
+        <ListBox ItemsSource="{Binding PasswordEntries}"
+                 SelectedItem="{Binding SelectedEntry}"
+                 Background="#222" Grid.Row="1">
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <!-- In this version, we use the PointerPressed event on the Border to trigger editing -->
                     <Border BorderThickness="1" Padding="10" PointerPressed="OnEntryClicked">
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <StackPanel>
