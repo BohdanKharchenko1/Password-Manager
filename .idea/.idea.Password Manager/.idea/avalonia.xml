@@ -4,6 +4,8 @@
     <option name="projectPerEditor">
       <map>
         <entry key="Password Manager/App.axaml" value="Password Manager/Password Manager.csproj" />
+        <entry key="Password Manager/Views/Auth.axaml" value="Password Manager/Password Manager.csproj" />
+        <entry key="Password Manager/Views/EditEntryWindow.axaml" value="Password Manager/Password Manager.csproj" />
         <entry key="Password Manager/Views/MainWindow.axaml" value="Password Manager/Password Manager.csproj" />
       </map>
     </option>

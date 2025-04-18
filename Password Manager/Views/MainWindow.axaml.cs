@@ -4,6 +4,7 @@ using Password_Manager.Models;
 using Password_Manager.Services;
 using Password_Manager.ViewModels;
 using System;
+using System.Runtime.InteropServices.JavaScript;
 using System.Threading.Tasks;
 using Avalonia.Interactivity;
 
@@ -42,7 +43,12 @@ namespace Password_Manager.Views
                 var editWindow = new EditEntryWindow(entry);
                 var result = await editWindow.ShowDialog<PasswordEntryModel>(this);
                 if (result == null)
-                    return; // User canceled editing.
+                    return; // User canceled editing
+                if(string.IsNullOrEmpty(result.ServiceName) || string.IsNullOrEmpty(result.EncryptedPassword))
+                {
+                    // Handle empty fields if necessary
+                    return;
+                }
 
                 // Update the entry with new values.
                 entry.ServiceName = result.ServiceName;
@@ -66,7 +72,6 @@ namespace Password_Manager.Views
             {
                 Console.WriteLine("OnEntryClicked Exception: " + ex.Message);
                 Console.WriteLine(ex.StackTrace);
-                // Optionally display an error to the user.
             }
         }
     }

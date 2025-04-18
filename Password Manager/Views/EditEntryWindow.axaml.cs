@@ -6,7 +6,7 @@ namespace Password_Manager.Views
 {
     public partial class EditEntryWindow : Window
     {
-        public PasswordEntryModel Entry { get; }
+        private PasswordEntryModel Entry { get; }
 
         public EditEntryWindow(PasswordEntryModel entry)
         {

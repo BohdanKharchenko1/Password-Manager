@@ -1,65 +1,90 @@
+using System;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Avalonia.Controls;
-using Avalonia.Markup.Xaml;
-using Password_Manager.Models;
 using Password_Manager.Services;
-using Password_Manager.ViewModels;
 
 namespace Password_Manager.Views
 {
     public partial class Auth : Window
     {
-        // Assumes you have TextBox controls named "UsernameBox" and "PasswordBox",
-        // Button controls "RegisterButton" and "LoginButton", and a TextBlock "ErrorTextBlock" in your XAML.
         public Auth()
         {
             InitializeComponent();
-            RegisterButton.Click += async (_, _) => await RegisterAsync();
-            LoginButton.Click += async (_, _) => await LoginAsync();
+            RegisterButton.Click += async (_, _) => await HandleRegisterAsync();
+            LoginButton.Click += async (_, _) => await HandleLoginAsync();
         }
 
-        private async Task RegisterAsync()
+        private async Task HandleRegisterAsync()
         {
-            var username = UsernameBox.Text?.Trim();
-            var password = PasswordBox.Text;
-
-            // Try to register the user. Returns a UserModel if successful.
-            UserModel? user = await UserService.RegisterUserAsync(username, password);
-            if (user != null)
+            try
             {
-                ErrorTextBlock.Text = "Registered successfully!";
-                await LoginAsync();
-                // Optionally, you could auto-login the user here.
-            }
-            else
-            {
-                ErrorTextBlock.Text = "User already exists or registration failed.";
-            }
-        }
+                var username = UsernameBox.Text?.Trim();
+                var password = PasswordBox.Text;
 
-        private async Task LoginAsync()
-        {
-            var username = UsernameBox.Text?.Trim();
-            var password = PasswordBox.Text;
-
-            // Attempt to verify the user's credentials.
-            UserModel? user = await UserService.VerifyUserAsync(username, password);
-            if (user != null)
-            {
-                // Successful login: open MainWindow with the authenticated user.
-                var mainWindow = new MainWindow(user)
+                if (string.IsNullOrWhiteSpace(username) || string.IsNullOrEmpty(password))
                 {
-                    DataContext = new MainWindowViewModel(user)
-                };
-                mainWindow.Show();
+                    ErrorTextBlock.Text = "Enter both username and password.";
+                    return;
+                }
 
-                // Close the Auth window.
+                if (!IsPasswordComplex(password))
+                {
+                    ErrorTextBlock.Text = "Password must be at least 8 characters and include uppercase, lowercase, digit, and special character.";
+                    return;
+                }
+
+                var user = await UserService.RegisterUserAsync(username, password);
+                if (user == null)
+                {
+                    ErrorTextBlock.Text = "Registration failed or user already exists.";
+                    return;
+                }
+
+                ErrorTextBlock.Text = string.Empty;
+                await HandleLoginAsync();
+            }
+            catch (Exception ex)
+            {
+                ErrorTextBlock.Text = "Error during registration: " + ex.Message;
+            }
+        }
+
+        private async Task HandleLoginAsync()
+        {
+            try
+            {
+                var username = UsernameBox.Text?.Trim();
+                var password = PasswordBox.Text;
+
+                if (string.IsNullOrWhiteSpace(username) || string.IsNullOrEmpty(password))
+                {
+                    ErrorTextBlock.Text = "Enter both username and password.";
+                    return;
+                }
+
+                var user = await UserService.VerifyUserAsync(username, password);
+                if (user == null)
+                {
+                    ErrorTextBlock.Text = "Invalid username or password.";
+                    return;
+                }
+
+                ErrorTextBlock.Text = string.Empty;
+                var mainWindow = new MainWindow(user);
+                mainWindow.Show();
                 Close();
             }
-            else
+            catch (Exception ex)
             {
-                ErrorTextBlock.Text = "Invalid username or password.";
+                ErrorTextBlock.Text = "Error during login: " + ex.Message;
             }
+        }
+
+        private bool IsPasswordComplex(string password)
+        {
+            // Check for at least one uppercase, one lowercase, one digit, and one special character
+            return Regex.IsMatch(password, @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$");
         }
     }
 }
