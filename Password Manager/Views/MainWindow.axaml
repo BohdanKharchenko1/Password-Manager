@@ -11,7 +11,6 @@
         <vm:MainWindowViewModel/>
     </Design.DataContext>
     <Grid RowDefinitions="Auto,*">
-        <!-- Top bar with Add and Delete buttons -->
         <StackPanel Orientation="Horizontal" Margin="10" Grid.Row="0" Spacing="30">
             <Button Content="+" Command="{Binding AddEntryCommand}" Width="30" Height="30" />
             <TextBlock Text="Add new entry" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="White"/>
@@ -20,7 +19,6 @@
             <Button x:Name="LogoutButton" Content="Logout" Width="70" Height="30" Margin="10,0,0,0"/>
         </StackPanel>
         
-        <!-- Password List -->
         <ListBox ItemsSource="{Binding PasswordEntries}"
                  SelectedItem="{Binding SelectedEntry}"
                  Background="#222" Grid.Row="1">
