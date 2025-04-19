@@ -69,7 +69,7 @@ Aplikace klade velký důraz na bezpečnost:
 
    - **Auth.axaml**: Okno pro přihlášení/registraci s poli pro uživatelské jméno a heslo.
    - **MainWindow.axaml**: Hlavní okno se seznamem záznamů a tlačítky pro přidávání/mazání.
-   - **EditEntryWindow.axaml**: Okno pro úpravu záznamů s validací hesla.
+   - **EditEntryWindow.axaml**: Okno pro úpravu záznamů.
 
 ### Vstupní omezení a možné problémy
 
