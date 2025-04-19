@@ -36,7 +36,7 @@ Aplikace klade velký důraz na bezpečnost:
 
 | **Třída/Struktura** | **Popis** |
 | --- | --- |
-| **UserModel** | Uchovává uživatelské jméno, hlavní heslo (pouze v paměti) a cestu k souboru se záznamy. Hlavní heslo je nastaveno pouze při inicializaci. |
+| **UserModel** | Uchovává uživatelské jméno, hlavní heslo a cestu k souboru se záznamy. Hlavní heslo je nastaveno pouze při inicializaci. |
 | **PasswordEntryModel** | Reprezentuje záznam hesla s unikátním ID (Guid), názvem služby, uživatelským jménem a šifrovaným heslem. |
 | **ObservableCollection** | Dynamická kolekce pro zobrazení záznamů v UI, umožňující reaktivní aktualizace. |
 | **Šifrovací proměnné** | Salt, IV a klíč používané třídou `EncryptionService` pro AES šifrování a dešifrování. |
