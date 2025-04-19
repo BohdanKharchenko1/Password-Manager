@@ -23,7 +23,7 @@ Všechny změny jsou uloženy do šifrovaného JSON souboru, což zajišťuje be
 Aplikace klade velký důraz na bezpečnost:
 
 - **Šifrování**: Využívá AES v režimu CBC s PKCS7 paddingem a PBKDF2 pro odvození klíče z hlavního hesla.
-- **Kontrola složitosti hesel**: Hlavní heslo i hesla pro služby musí obsahovat alespoň 8 znaků, velké a malé písmeno, číslo a speciální znak.
+- **Kontrola složitosti hesel**: Hlavní heslo musí obsahovat alespoň 8 znaků, velké a malé písmeno, číslo a speciální znak.
 - **Oddělené ukládání**: Hlavní heslo je uloženo jako hash, zatímco záznamy jsou šifrovány, což minimalizuje riziko úniku dat.
 
 ## Podrobný popis
