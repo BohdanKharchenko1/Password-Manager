@@ -10,9 +10,7 @@ namespace Password_Manager.ViewModels
 {
     public class MainWindowViewModel : ViewModelBase
     {
-        // The authenticated user's details are passed in (e.g., via UserModel)
-        public UserModel User { get; }
-
+        public UserModel? User { get; }
         public ObservableCollection<PasswordEntryModel> PasswordEntries { get; } = new();
         
         private PasswordEntryModel? _selectedEntry;
@@ -22,60 +20,96 @@ namespace Password_Manager.ViewModels
             set => SetProperty(ref _selectedEntry, value);
         }
 
-        public ICommand AddEntryCommand { get; }
-        public ICommand DeleteEntryCommand { get; }
+        public ICommand? AddEntryCommand { get; }
+        public ICommand? DeleteEntryCommand { get; }
 
         public MainWindowViewModel(UserModel user)
         {
-            User = user;
-            _ = LoadEntriesAsync();
-            AddEntryCommand = new RelayCommand(AddEntry);
-            DeleteEntryCommand = new RelayCommand(DeleteSelectedEntry, () => true);
-
-        }
-        private async void DeleteSelectedEntry()
-        {
-            if (SelectedEntry == null)
-                return;
-
-            // Call the delete method with the ID of the selected entry.
-            bool success = await FileService.DeleteEncryptedEntryAsync(SelectedEntry.Id, User.EntriesFilePath, User.MasterPassword);
-            if (success)
+            try
             {
-                PasswordEntries.Remove(SelectedEntry);
+                User = user;
+                _ = LoadEntriesAsync();
+                AddEntryCommand = new RelayCommand(AddEntry);
+                DeleteEntryCommand = new AsyncRelayCommand(DeleteSelectedEntry, () => true);
             }
-            else
+            catch (Exception e)
             {
-                Console.WriteLine("Failed to delete the selected entry.");
+                Console.WriteLine($"Error initializing MainWindowViewModel: {e.Message}");
             }
         }
 
-
-        private async Task LoadEntriesAsync()
+        /// <summary>
+        /// Deletes the selected password entry from the encrypted file and the observable collection.
+        /// </summary>
+        /// <returns>A Task representing the asynchronous operation; removes the entry from the collection if successful.</returns>
+        private async Task DeleteSelectedEntry()
         {
-            var entries = await FileService.LoadEncryptedEntriesAsync(User.EntriesFilePath, User.MasterPassword);
-            if (entries != null)
+            try
             {
-                foreach (var entry in entries)
+                if (SelectedEntry == null)
+                    return;
+
+                bool success = await FileService.DeleteEncryptedEntryAsync(SelectedEntry.Id, User!.EntriesFilePath, User!.MasterPassword);
+                if (success)
                 {
-                    PasswordEntries.Add(entry);
+                    PasswordEntries.Remove(SelectedEntry);
+                }
+                else
+                {
+                    Console.WriteLine("Failed to delete the selected entry.");
                 }
             }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error deleting entry: {e.Message}");
+            }
         }
 
+        /// <summary>
+        /// Loads encrypted password entries from the user's file and populates the observable collection.
+        /// </summary>
+        /// <returns>A Task representing the asynchronous operation.</returns>
+        private async Task LoadEntriesAsync()
+        {
+            try
+            {
+                var entries = await FileService.LoadEncryptedEntriesAsync(User!.EntriesFilePath, User!.MasterPassword);
+                if (entries != null)
+                {
+                    foreach (var entry in entries)
+                    {
+                        PasswordEntries.Add(entry);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error loading entries: {e.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Adds a new password entry to the observable collection and saves it to the encrypted file.
+        /// </summary>
+        /// <returns>No return value; adds the entry to the collection and initiates async save.</returns>
         private void AddEntry()
         {
-            
-            var newEntry = new PasswordEntryModel
+            try
             {
-                ServiceName = "New Service",
-                Username = "example@domain.com",
-                EncryptedPassword = "encrypted_placeholder" // This field is normally managed via encryption.
-            };
+                var newEntry = new PasswordEntryModel
+                {
+                    ServiceName = "New Service",
+                    Username = "example@domain.com",
+                    EncryptedPassword = "encrypted_placeholder"
+                };
 
-            PasswordEntries.Add(newEntry);
-            _ = FileService.SaveEncryptedEntryAsync(newEntry, User.EntriesFilePath, User.MasterPassword);
-
+                PasswordEntries.Add(newEntry);
+                _ = FileService.SaveEncryptedEntryAsync(newEntry, User!.EntriesFilePath, User!.MasterPassword);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error adding entry: {e.Message}");
+            }
         }
     }
 }

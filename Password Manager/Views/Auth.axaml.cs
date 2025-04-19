@@ -15,6 +15,10 @@ namespace Password_Manager.Views
             LoginButton.Click += async (_, _) => await HandleLoginAsync();
         }
 
+        /// <summary>
+        /// Handles user registration by validating input and registering the user.
+        /// </summary>
+        /// <returns>A Task representing the asynchronous operation; displays error messages or proceeds to log in on success.</returns>
         private async Task HandleRegisterAsync()
         {
             try
@@ -44,12 +48,16 @@ namespace Password_Manager.Views
                 ErrorTextBlock.Text = string.Empty;
                 await HandleLoginAsync();
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                ErrorTextBlock.Text = "Error during registration: " + ex.Message;
+                ErrorTextBlock.Text = "Error during registration: " + e.Message;
             }
         }
 
+        /// <summary>
+        /// Handles user login by validating credentials and opening the main window.
+        /// </summary>
+        /// <returns>A Task representing the asynchronous operation; opens main window on success or displays error message.</returns>
         private async Task HandleLoginAsync()
         {
             try
@@ -75,15 +83,19 @@ namespace Password_Manager.Views
                 mainWindow.Show();
                 Close();
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                ErrorTextBlock.Text = "Error during login: " + ex.Message;
+                ErrorTextBlock.Text = "Error during login: " + e.Message;
             }
         }
 
+        /// <summary>
+        /// Validates if a password meets complexity requirements.
+        /// </summary>
+        /// <param name="password">The password to validate.</param>
+        /// <returns>True if the password is at least 8 characters and contains uppercase, lowercase, digit, and special character; otherwise, false.</returns>
         private bool IsPasswordComplex(string password)
         {
-            // Check for at least one uppercase, one lowercase, one digit, and one special character
             return Regex.IsMatch(password, @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$");
         }
     }

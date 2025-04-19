@@ -4,8 +4,6 @@ using Password_Manager.Models;
 using Password_Manager.Services;
 using Password_Manager.ViewModels;
 using System;
-using System.Runtime.InteropServices.JavaScript;
-using System.Threading.Tasks;
 using Avalonia.Interactivity;
 
 namespace Password_Manager.Views
@@ -21,12 +19,14 @@ namespace Password_Manager.Views
 
         private void LogOutClicked(object sender, RoutedEventArgs e)
         {
-            // Optionally, you can prompt the user for confirmation before logging out.
             var authWindow = new Auth();
             authWindow.Show();
             Close();
         }
 
+        /// <summary>
+        /// Handles the click event on a password entry to edit it.
+        /// </summary>
         private async void OnEntryClicked(object sender, PointerPressedEventArgs e)
         {
             try
@@ -34,28 +34,21 @@ namespace Password_Manager.Views
                 if (sender is not Border border)
                     throw new Exception("Sender is not a Border.");
 
-                // Retrieve the item's DataContext.
                 var entry = border.DataContext as PasswordEntryModel;
                 if (entry == null)
                     throw new Exception("DataContext is not a PasswordEntryModel.");
 
-                // Open the edit dialog window, passing the current entry.
                 var editWindow = new EditEntryWindow(entry);
                 var result = await editWindow.ShowDialog<PasswordEntryModel>(this);
-                if (result == null)
-                    return; // User canceled editing
                 if(string.IsNullOrEmpty(result.ServiceName) || string.IsNullOrEmpty(result.EncryptedPassword))
                 {
-                    // Handle empty fields if necessary
                     return;
                 }
 
-                // Update the entry with new values.
                 entry.ServiceName = result.ServiceName;
                 entry.Username = result.Username;
                 entry.EncryptedPassword = result.EncryptedPassword;
 
-// Force the UI to refresh the updated entry
                 if (DataContext is MainWindowViewModel vm)
                 {
                     var index = vm.PasswordEntries.IndexOf(entry);
@@ -71,7 +64,6 @@ namespace Password_Manager.Views
             catch (Exception ex)
             {
                 Console.WriteLine("OnEntryClicked Exception: " + ex.Message);
-                Console.WriteLine(ex.StackTrace);
             }
         }
     }

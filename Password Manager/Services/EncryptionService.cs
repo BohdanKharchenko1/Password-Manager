@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Security.Cryptography;
-using System.Text;
 
 namespace Password_Manager.Services
 {
@@ -17,42 +16,38 @@ namespace Password_Manager.Services
         /// <returns>Base64 string containing the salt, IV, and encrypted data.</returns>
         public static string Encrypt(string plainText, string password)
         {
-            using Aes aes = Aes.Create();
-            aes.Mode = CipherMode.CBC;
-            aes.Padding = PaddingMode.PKCS7;
+            try
+            {
+                using Aes aes = Aes.Create();
+                aes.Mode = CipherMode.CBC;
+                aes.Padding = PaddingMode.PKCS7;
 
-            // Generate a random salt (16 bytes)
-            byte[] salt = new byte[16];
-            using (var rng = RandomNumberGenerator.Create())
-            {
+                byte[] salt = new byte[16];
+                using var rng = RandomNumberGenerator.Create();
                 rng.GetBytes(salt);
+
+                byte[] key = DeriveKey(password, salt, aes.KeySize / 8);
+                aes.Key = key;
+
+                aes.GenerateIV();
+                byte[] iv = aes.IV;
+
+                using var ms = new MemoryStream();
+                ms.Write(salt, 0, salt.Length);
+                ms.Write(iv, 0, iv.Length);
+
+                using (var cs = new CryptoStream(ms, aes.CreateEncryptor(), CryptoStreamMode.Write))
+                using (var sw = new StreamWriter(cs))
+                {
+                    sw.Write(plainText);
+                }
+
+                return Convert.ToBase64String(ms.ToArray());
             }
-            
-            // Derive the key using the random salt
-            byte[] key = DeriveKey(password, salt, aes.KeySize / 8);
-            aes.Key = key;
-            
-            // Generate a random IV.
-            aes.GenerateIV();
-            byte[] iv = aes.IV;
-            
-            using MemoryStream ms = new MemoryStream();
-            // Write the salt and IV at the beginning of the stream.
-            ms.Write(salt, 0, salt.Length);
-            ms.Write(iv, 0, iv.Length);
-            
-            // Encrypt the plain text.
-            using (CryptoStream cs = new CryptoStream(ms, aes.CreateEncryptor(), CryptoStreamMode.Write))
-            using (StreamWriter sw = new StreamWriter(cs))
+            catch (Exception e)
             {
-                sw.Write(plainText);
+                throw new Exception("Encryption failed.", e);
             }
-            
-            // Get the complete encrypted data from the memory stream.
-            byte[] encryptedBytes = ms.ToArray();
-            
-            // Return the encrypted data as a Base64 string.
-            return Convert.ToBase64String(encryptedBytes);
         }
 
         /// <summary>
@@ -64,36 +59,39 @@ namespace Password_Manager.Services
         /// <returns>The decrypted plain text.</returns>
         public static string Decrypt(string cipherText, string password)
         {
-            byte[] fullCipher = Convert.FromBase64String(cipherText);
-            
-            using Aes aes = Aes.Create();
-            aes.Mode = CipherMode.CBC;
-            aes.Padding = PaddingMode.PKCS7;
-            
-            // The salt is the first 16 bytes.
-            byte[] salt = new byte[16];
-            Array.Copy(fullCipher, 0, salt, 0, salt.Length);
-            
-            // The IV is next.
-            int ivLength = aes.BlockSize / 8; // Typically 16 bytes for AES.
-            byte[] iv = new byte[ivLength];
-            Array.Copy(fullCipher, salt.Length, iv, 0, ivLength);
-            
-            // The remaining bytes are the cipher text.
-            int cipherTextLength = fullCipher.Length - salt.Length - ivLength;
-            byte[] cipher = new byte[cipherTextLength];
-            Array.Copy(fullCipher, salt.Length + ivLength, cipher, 0, cipherTextLength);
-            
-            // Derive the key using the extracted salt.
-            byte[] key = DeriveKey(password, salt, aes.KeySize / 8);
-            aes.Key = key;
-            aes.IV = iv;
-            
-            using MemoryStream ms = new MemoryStream(cipher);
-            using CryptoStream cs = new CryptoStream(ms, aes.CreateDecryptor(), CryptoStreamMode.Read);
-            using StreamReader sr = new StreamReader(cs);
-            
-            return sr.ReadToEnd();
+            try
+            {
+                byte[] fullCipher = Convert.FromBase64String(cipherText);
+
+                using Aes aes = Aes.Create();
+                aes.Mode = CipherMode.CBC;
+                aes.Padding = PaddingMode.PKCS7;
+
+                byte[] salt = new byte[16];
+                Array.Copy(fullCipher, 0, salt, 0, salt.Length);
+
+                int ivLength = aes.BlockSize / 8;
+                byte[] iv = new byte[ivLength];
+                Array.Copy(fullCipher, salt.Length, iv, 0, ivLength);
+
+                int cipherTextLength = fullCipher.Length - salt.Length - ivLength;
+                byte[] cipher = new byte[cipherTextLength];
+                Array.Copy(fullCipher, salt.Length + ivLength, cipher, 0, cipherTextLength);
+
+                byte[] key = DeriveKey(password, salt, aes.KeySize / 8);
+                aes.Key = key;
+                aes.IV = iv;
+
+                using var ms = new MemoryStream(cipher);
+                using var cs = new CryptoStream(ms, aes.CreateDecryptor(), CryptoStreamMode.Read);
+                using var sr = new StreamReader(cs);
+
+                return sr.ReadToEnd();
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Decryption failed.", e);
+            }
         }
 
         /// <summary>
@@ -105,7 +103,6 @@ namespace Password_Manager.Services
         /// <returns>The derived key as a byte array.</returns>
         private static byte[] DeriveKey(string password, byte[] salt, int keyBytes)
         {
-            // Use PBKDF2 with 10,000 iterations and SHA256.
             using var pdb = new Rfc2898DeriveBytes(password, salt, 10000, HashAlgorithmName.SHA256);
             return pdb.GetBytes(keyBytes);
         }
