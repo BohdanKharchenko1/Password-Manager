@@ -56,7 +56,6 @@ Aplikace klade velký důraz na bezpečnost:
 
 3. **Správa záznamů**:
 
-   - Přidávání nových záznamů s povinnou kontrolou složitosti hesla.
    - Úprava nebo mazání záznamů s asynchronním ukládáním změn do šifrovaného souboru.
    - Zobrazení záznamů v seznamu s možností výběru pro úpravu.
 
